@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx_test
+    ports:
+      - "8876:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+  db:
+    image: postgres:14
+    restart: always
+    volumes:
+      - ./tmp/db:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: docker_start_db
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_USER: galeev
+      POSTGRES_INITDB_ARGS: "-A md5"
+    ports:
+      - "5432:5432"
+    container_name: pg_test
+    depends_on:
+      - app
+  adminer:
+    image: adminer:4.7
+    ports:
+      - "8008:8080"
+    depends_on:
+      - db
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: php_test
+    volumes:
+      - ./:/var/www
